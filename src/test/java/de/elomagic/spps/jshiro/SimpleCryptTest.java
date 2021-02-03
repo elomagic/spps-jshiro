@@ -33,6 +33,7 @@ class SimpleCryptTest {
         String encrypted = SimpleCrypt.encrypt(value);
 
         Assertions.assertNotEquals(value, encrypted);
+        Assertions.assertNotEquals(22, encrypted.length());
 
         String decrypted = SimpleCrypt.decryptToString(encrypted);
 
