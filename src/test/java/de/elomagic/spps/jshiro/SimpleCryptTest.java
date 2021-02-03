@@ -21,7 +21,6 @@ import org.apache.shiro.codec.CodecSupport;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 
@@ -38,6 +37,10 @@ class SimpleCryptTest {
         String decrypted = SimpleCrypt.decryptToString(encrypted);
 
         Assertions.assertEquals(value, decrypted);
+
+        String e1 = SimpleCrypt.encrypt(value);
+        String e2 = SimpleCrypt.encrypt(value);
+        Assertions.assertNotEquals(e1, e2);
     }
 
     @Test
