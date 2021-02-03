@@ -46,7 +46,7 @@ import java.util.Collections;
 public final class SimpleCrypt {
 
     private static final Logger LOGGER = LogManager.getLogger(SimpleCrypt.class);
-    private static final Path MASTERKEY_FILE = Paths.get(System.getProperty("user.home"), ".elomagic", "masterkey");
+    private static final Path MASTERKEY_FILE = Paths.get(System.getProperty("user.home"), ".spps", "masterkey");
     private static final DefaultBlockCipherService CIPHER = new AesCipherService();
 
     private SimpleCrypt() {
