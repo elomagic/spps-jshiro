@@ -64,7 +64,7 @@ public final class SimpleCrypt {
             byte[] base64 = Files.readAllBytes(MASTERKEY_FILE);
             result = Base64.decode(base64);
         } else {
-            Key key = CIPHER.generateNewKey();
+            Key key = CIPHER.generateNewKey(256);
             result = key.getEncoded();
 
             String base64 = Base64.encodeToString(result);
