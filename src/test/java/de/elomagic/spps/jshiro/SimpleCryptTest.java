@@ -42,6 +42,8 @@ class SimpleCryptTest {
         String e1 = SimpleCrypt.encrypt(value);
         String e2 = SimpleCrypt.encrypt(value);
         Assertions.assertNotEquals(e1, e2);
+
+        Assertions.assertThrows(GeneralSecurityException.class, () -> SimpleCrypt.decryptToString("{bullshit}"));
     }
 
     @Test
