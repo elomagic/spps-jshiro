@@ -60,11 +60,24 @@ public final class SimpleCrypt {
     private SimpleCrypt() {
     }
 
+    /**
+     * Read private key from default location.
+     *
+     * @return Returns the private key as byte array.
+     * @throws GeneralSecurityException Thrown when unable to create private key
+     */
     @NotNull
     private static byte[] readPrivateKey() throws GeneralSecurityException {
         return readPrivateKey(PRIVATE_KEY_FILE);
     }
 
+    /**
+     * Read a private key.
+     *
+     * @param file File of the private key. When relocation in file is set then key will be read from there.
+     * @return Returns the private key as byte array.
+     * @throws GeneralSecurityException Thrown when unable to create private key
+     */
     @NotNull
     private static byte[] readPrivateKey(@NotNull Path file) throws GeneralSecurityException {
         try {
@@ -101,6 +114,12 @@ public final class SimpleCrypt {
         createPrivateKey(PRIVATE_KEY_FILE, force);
     }
 
+    /**
+     * Creates a new private key.
+     *
+     * @param force Must true to confirm to overwrite existing private key.
+     * @throws GeneralSecurityException Thrown when unable to create private key
+     */
     private static void createPrivateKey(@NotNull Path file, boolean force) throws GeneralSecurityException {
         if (PRIVATE_KEY_FILE.equals(file)) {
             createPrivateKey(file, null, force);
@@ -109,6 +128,13 @@ public final class SimpleCrypt {
         }
     }
 
+    /**
+     * Creates a private key file.
+     *
+     * @param file (Alternative) file where to write file with private key
+     * @param force When true and private key file already exists then it will be overwritten otherwise an exception will be thrown
+     * @throws GeneralSecurityException Thrown when unable to create private key
+     */
     private static void createPrivateKey(@NotNull Path file, @Nullable Path relocationFile, boolean force) throws GeneralSecurityException {
         try {
             if(!PRIVATE_KEY_FILE.getParent().toFile().exists()) {
