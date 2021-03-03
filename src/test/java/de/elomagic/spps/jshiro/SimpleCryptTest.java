@@ -115,9 +115,11 @@ class SimpleCryptTest {
     }
 
     @Test
-    void testMain() {
-        Assertions.assertDoesNotThrow(() -> SimpleCrypt.main(new String[] {"abcde"}));
-        Assertions.assertDoesNotThrow(() -> SimpleCrypt.main(null));
+    void testRun() throws Exception {
+        SimpleCrypt.createPrivateKey(true);
+        Assertions.assertEquals(0, SimpleCrypt.run(new String[] {"-Secret", "abcde"}));
+        Assertions.assertEquals(0, SimpleCrypt.run(null));
+        Assertions.assertEquals(1, SimpleCrypt.run(new String[] {"-Secret"}));
     }
 
     @Test

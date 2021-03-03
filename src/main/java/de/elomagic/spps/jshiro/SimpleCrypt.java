@@ -21,6 +21,7 @@ package de.elomagic.spps.jshiro;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.util.IOUtils;
 import org.apache.shiro.codec.Base64;
 import org.apache.shiro.codec.CodecSupport;
 import org.apache.shiro.crypto.AesCipherService;
@@ -29,10 +30,7 @@ import org.apache.shiro.util.ByteSource;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -40,6 +38,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.Key;
+import java.util.Arrays;
 import java.util.Properties;
 
 /**
@@ -285,24 +284,58 @@ public final class SimpleCrypt {
         return value != null && value.startsWith("{") && value.endsWith("}");
     }
 
+    private static PrintWriter out() {
+        // For JUnit test we have to use System.out because console() will return null
+        return System.console() == null ? new PrintWriter(System.out, true) : System.console().writer();
+    }
+
+    private static String getArgument(@Nullable String[] args, int index) {
+        if (args == null || args.length <= index) {
+            throw new IllegalArgumentException("Syntax error. Argument not found.");
+        }
+
+        return args[index];
+    }
+
+    static int run(@Nullable String[] args) {
+        try {
+            args = args == null ? new String[0] : args;
+
+            if (Arrays.binarySearch(args, "-Secret") != -1) {
+                int i = Arrays.binarySearch(args, "-Secret");
+                byte[] secret = getArgument(args, i+1).getBytes(StandardCharsets.UTF_8);
+                out().println(encrypt(secret));
+            } else if (Arrays.binarySearch(args, "-CreatePrivateKey") != -1) {
+                boolean force = Arrays.binarySearch(args, "-Force") != -1;
+                int i = Arrays.binarySearch(args, "-Relocation");
+                Path relocation = i == -1 ? null : Paths.get(getArgument(args, i+1));
+                if (relocation == null) {
+                    createPrivateKey(force);
+                } else {
+                    createPrivateKey(relocation, force);
+                }
+            } else {
+                String resource = "/" + SimpleCrypt.class.getPackage().getName().replace(".", "/") + "/Help.txt";
+                try (InputStream in = SimpleCrypt.class.getResourceAsStream(resource); InputStreamReader reader = new InputStreamReader(in)) {
+                    String text = IOUtils.toString(reader);
+                    out().println(text);
+                }
+            }
+            return 0;
+        } catch (Exception ex) {
+            LOGGER.error(ex.getMessage(), ex);
+            return 1;
+        }
+    }
+
     /**
      * Tooling method for simple and fast encrypting secrets.
      *
      * @param args First argument must contain value to encrypt
      */
-    public static void main(String[] args) {
-        try {
-            if (args == null || args.length == 0) {
-                LOGGER.error("No value found to encrypt.");
-                return;
-            }
-
-            String s = encrypt(args[0]);
-
-            LOGGER.info("Encrypted value: {}", s);
-        } catch (Exception ex) {
-            LOGGER.error(ex.getMessage(), ex);
-        }
+    public static void main(@Nullable String[] args) {
+        int exitCode = run(args);
+        System.exit(exitCode);
     }
 
 }
