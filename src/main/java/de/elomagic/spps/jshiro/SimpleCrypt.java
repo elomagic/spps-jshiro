@@ -50,10 +50,10 @@ import java.util.Properties;
 public final class SimpleCrypt {
 
     private static final Logger LOGGER = LogManager.getLogger(SimpleCrypt.class);
-    private static final String MASTER_KEY_FILENAME = "masterkey";
+    private static final String PRIVATE_KEY_FILENAME = "settings";
     private static final String KEY_KEY = "key";
     private static final String RELOCATION_KEY = "relocation";
-    private static final Path MASTER_KEY_FILE = Paths.get(System.getProperty("user.home"), ".spps", MASTER_KEY_FILENAME);
+    private static final Path PRIVATE_KEY_FILE = Paths.get(System.getProperty("user.home"), ".spps", PRIVATE_KEY_FILENAME);
 
     private static final DefaultBlockCipherService CIPHER = new AesCipherService();
 
@@ -61,15 +61,15 @@ public final class SimpleCrypt {
     }
 
     @NotNull
-    private static byte[] readMasterKey() throws GeneralSecurityException {
-        return readMasterKey(MASTER_KEY_FILE);
+    private static byte[] readPrivateKey() throws GeneralSecurityException {
+        return readPrivateKey(PRIVATE_KEY_FILE);
     }
 
     @NotNull
-    private static byte[] readMasterKey(@NotNull Path file) throws GeneralSecurityException {
+    private static byte[] readPrivateKey(@NotNull Path file) throws GeneralSecurityException {
         try {
             if (Files.notExists(file)) {
-                throw new FileNotFoundException("Unable to find settings file. At first you have to create a master key.");
+                throw new FileNotFoundException("Unable to find settings file. At first you have to create a private key.");
             }
 
             Properties p = new Properties();
@@ -77,46 +77,46 @@ public final class SimpleCrypt {
                 p.load(reader);
 
                 if (p.getProperty(RELOCATION_KEY, "").trim().length() != 0) {
-                    return readMasterKey(Paths.get(p.getProperty(RELOCATION_KEY)));
+                    return readPrivateKey(Paths.get(p.getProperty(RELOCATION_KEY)));
                 } else {
                     return Base64.decode(p.getProperty(KEY_KEY));
                 }
             }
         } catch (IOException ex) {
             LOGGER.error(ex.getMessage(), ex);
-            throw new IllegalStateException("Unable to read master key", ex);
+            throw new IllegalStateException("Unable to read private key", ex);
         } catch (Exception ex) {
             LOGGER.error(ex.getMessage(), ex);
-            throw new GeneralSecurityException("Unable to create or read master key.", ex);
+            throw new GeneralSecurityException("Unable to create or read private key.", ex);
         }
     }
 
     /**
-     * Creates a new master key.
+     * Creates a new private key.
      *
-     * @param force Must true to confirm to overwrite existing master key.
-     * @throws GeneralSecurityException Thrown when unable to create master key
+     * @param force Must true to confirm to overwrite existing private key.
+     * @throws GeneralSecurityException Thrown when unable to create private key
      */
-    public static void createMasterKey(boolean force) throws GeneralSecurityException {
-        createMasterKey(MASTER_KEY_FILE, force);
+    public static void createPrivateKey(boolean force) throws GeneralSecurityException {
+        createPrivateKey(PRIVATE_KEY_FILE, force);
     }
 
-    private static void createMasterKey(@NotNull Path file, boolean force) throws GeneralSecurityException {
-        if (MASTER_KEY_FILE.equals(file)) {
-            createMasterKey(file, null, force);
+    private static void createPrivateKey(@NotNull Path file, boolean force) throws GeneralSecurityException {
+        if (PRIVATE_KEY_FILE.equals(file)) {
+            createPrivateKey(file, null, force);
         } else {
-            createMasterKey(MASTER_KEY_FILE, file, force);
+            createPrivateKey(PRIVATE_KEY_FILE, file, force);
         }
     }
 
-    private static void createMasterKey(@NotNull Path file, @Nullable Path relocationFile, boolean force) throws GeneralSecurityException {
+    private static void createPrivateKey(@NotNull Path file, @Nullable Path relocationFile, boolean force) throws GeneralSecurityException {
         try {
-            if(!MASTER_KEY_FILE.getParent().toFile().exists()) {
-                Files.createDirectories(MASTER_KEY_FILE.getParent());
+            if(!PRIVATE_KEY_FILE.getParent().toFile().exists()) {
+                Files.createDirectories(PRIVATE_KEY_FILE.getParent());
             }
 
             if (Files.exists(file) && !force) {
-                throw new FileAlreadyExistsException("Master key file \"" + file+ "\" already exists. Use parameter \"-Force\" to overwrite it.");
+                throw new FileAlreadyExistsException("Private key file \"" + file+ "\" already exists. Use parameter \"-Force\" to overwrite it.");
             }
 
             Properties p = new Properties();
@@ -132,7 +132,7 @@ public final class SimpleCrypt {
             } else {
                 p.put(KEY_KEY, "");
                 p.put(RELOCATION_KEY, relocationFile.toString());
-                createMasterKey(relocationFile, null, force);
+                createPrivateKey(relocationFile, null, force);
             }
 
             try (Writer writer = Files.newBufferedWriter(file, StandardCharsets.UTF_8)) {
@@ -140,10 +140,10 @@ public final class SimpleCrypt {
             }
         } catch (IOException ex) {
             LOGGER.error(ex.getMessage(), ex);
-            throw new IllegalStateException("Unable to create master key", ex);
+            throw new IllegalStateException("Unable to create private key", ex);
         } catch (Exception ex) {
             LOGGER.error(ex.getMessage(), ex);
-            throw new GeneralSecurityException("Unable to create or read master key.", ex);
+            throw new GeneralSecurityException("Unable to create or read private key.", ex);
         }
     }
 
@@ -161,7 +161,7 @@ public final class SimpleCrypt {
         }
 
         try {
-            ByteSource encrypted = CIPHER.encrypt(decrypted, readMasterKey());
+            ByteSource encrypted = CIPHER.encrypt(decrypted, readPrivateKey());
 
             return "{" + encrypted.toBase64() + "}";
         } catch(Exception ex) {
@@ -216,7 +216,7 @@ public final class SimpleCrypt {
 
             byte[] encryptedBytes = Base64.decode(encryptedBase64.substring(1, encryptedBase64.length() - 1));
 
-            ByteSource decrypted = CIPHER.decrypt(encryptedBytes, readMasterKey());
+            ByteSource decrypted = CIPHER.decrypt(encryptedBytes, readPrivateKey());
 
             return decrypted.getBytes();
         } catch(Exception ex) {
