@@ -52,6 +52,7 @@ public final class SimpleCrypt {
     private static final String PRIVATE_KEY_FILENAME = "settings";
     private static final String KEY_KEY = "key";
     private static final String RELOCATION_KEY = "relocation";
+    private static final int PRIVATE_KEY_SIZE = 256;
     private static final Path PRIVATE_KEY_FILE = Paths.get(System.getProperty("user.home"), ".spps", PRIVATE_KEY_FILENAME);
 
     private static final DefaultBlockCipherService CIPHER = new AesCipherService();
@@ -147,7 +148,7 @@ public final class SimpleCrypt {
             Properties p = new Properties();
 
             if (relocationFile == null || file.equals(relocationFile)) {
-                Key key = CIPHER.generateNewKey(256);
+                Key key = CIPHER.generateNewKey(PRIVATE_KEY_SIZE);
                 byte[] result = key.getEncoded();
 
                 String base64 = Base64.encodeToString(result);
