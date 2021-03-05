@@ -13,7 +13,7 @@ The SPPS is a lightweight solution to protect / hide your password or anything e
 
 ## Features
 
-* AES 256 CGM en-/decryption
+* AES 256 GCM en-/decryption
 * Cross programming languages support (Java, Python, Node.js)
 
 ## Concept
