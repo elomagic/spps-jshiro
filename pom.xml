@@ -11,6 +11,7 @@
 
     <name>Simple Password Protection Solution with Apache Shiro</name>
     <description>Simple Password Protection Solution for Java with Apache Shiro</description>
+    <url>https://github.com/elomagic/spps-jshiro</url>
 
     <licenses>
         <license>
