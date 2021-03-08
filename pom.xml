@@ -53,8 +53,8 @@
 
     <scm>
         <url>https://github.com/elomagic/spps-jshiro</url>
-        <connection>scm:git:git@github.com/elomagic/spps-jshiro.git</connection>
-        <developerConnection>scm:git:git@github.com/elomagic/spps-jshiro.git</developerConnection>
+        <connection>scm:git:https://github.com/elomagic/spps-jshiro.git</connection>
+        <developerConnection>scm:git:https://github.com/elomagic/spps-jshiro.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
