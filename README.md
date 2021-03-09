@@ -13,8 +13,8 @@ The SPPS is a lightweight solution to protect / hide your password or anything e
 
 ## Features
 
-* AES 256 CGM en-/decryption
-* Cross programming languages support (Java, Python, Node.js)
+* AES 256 GCM en-/decryption
+* Cross programming languages support ([Java](https://github.com/elomagic/spps-jbc), [Python](https://github.com/elomagic/spps-py), [Node.js](https://github.com/elomagic/spps-npm))
 
 ## Concept
 
@@ -29,6 +29,30 @@ A symmetrical encryption based on the AES-GCM 256 method is used. See also https
 By default, the private key is stored in a file "/.sbbs/settings" of the user home folder.
 
 Keep in mind that anyone who has access to the user home or relocation folder also has access to the private key !!!!
+
+## Using in your Maven project
+
+Add following dependency to your project
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    ...
+
+    <dependencies>
+        <dependency>
+            <groupId>de.elomagic</groupId>
+            <artifactId>spps-jshiro</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+    </dependencies>
+
+    ...
+
+</project>
+```
 
 ## Example
 

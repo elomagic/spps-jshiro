@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>de.elomagic</groupId>
     <artifactId>spps-jshiro</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.3-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Simple Password Protection Solution with Apache Shiro</name>
     <description>Simple Password Protection Solution for Java with Apache Shiro</description>
+    <url>https://github.com/elomagic/spps-jshiro</url>
 
     <licenses>
         <license>
@@ -43,6 +43,7 @@
         <java.version>1.8</java.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.scm.id>github</project.scm.id>
 
         <junit-jupiter-engine.version>5.6.2</junit-jupiter-engine.version>
         <maven-surefire.version>3.0.0-M5</maven-surefire.version>
@@ -53,8 +54,8 @@
 
     <scm>
         <url>https://github.com/elomagic/spps-jshiro</url>
-        <connection>scm:git:git@github.com/elomagic/spps-jshiro.git</connection>
-        <developerConnection>scm:git:git@github.com/elomagic/spps-jshiro.git</developerConnection>
+        <connection>scm:git:https://github.com/elomagic/spps-jshiro.git</connection>
+        <developerConnection>scm:git:https://github.com/elomagic/spps-jshiro.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
@@ -207,6 +208,9 @@
                                 <goals>
                                     <goal>jar</goal>
                                 </goals>
+                                <configuration>
+                                    <javadocExecutable>${java.home}/bin</javadocExecutable>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
@@ -218,7 +222,7 @@
                             <execution>
                                 <id>attach-sources</id>
                                 <goals>
-                                    <goal>jar</goal>
+                                    <goal>jar-no-fork</goal>
                                 </goals>
                             </execution>
                         </executions>
@@ -236,6 +240,14 @@
                                 </goals>
                             </execution>
                         </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-release-plugin</artifactId>
+                        <version>3.0.0-M1</version>
+                        <configuration>
+
+                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.sonatype.plugins</groupId>

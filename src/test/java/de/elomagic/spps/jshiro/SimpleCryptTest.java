@@ -126,6 +126,9 @@ class SimpleCryptTest {
     void testIsEncryptedValue() {
         Assertions.assertTrue(SimpleCrypt.isEncryptedValue("{abc}"));
         Assertions.assertFalse(SimpleCrypt.isEncryptedValue("abc}"));
+        Assertions.assertFalse(SimpleCrypt.isEncryptedValue("{abc"));
+        Assertions.assertFalse(SimpleCrypt.isEncryptedValue("abc"));
+        Assertions.assertFalse(SimpleCrypt.isEncryptedValue(null));
     }
 
     @Test
