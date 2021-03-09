@@ -45,7 +45,7 @@ Add following dependency to your project
         <dependency>
             <groupId>de.elomagic</groupId>
             <artifactId>spps-jshiro</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.2</version>
         </dependency>
     </dependencies>
 
