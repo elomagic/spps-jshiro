@@ -46,7 +46,7 @@ Add following dependency to your project
         <dependency>
             <groupId>de.elomagic</groupId>
             <artifactId>spps-jshiro</artifactId>
-            <version>1.0.2</version>
+            <version>1.1.0</version>
         </dependency>
     </dependencies>
 
@@ -127,4 +127,30 @@ java -jar spps-jshiro-1.0.0.jar -Secret YourSecret
 Output should look like:
 ```
 {MLaFzwpNyKJbJSCg4xY5g70WDAKnOhVe3oaaDAGWtH4KXR4=}
+```
+
+## How can my application use an alternative settings file instead of the default
+
+*Supported since version 1.1.0*
+
+The method ```SimpleCrypt.setSettingsFile([file])``` can be used to set application wide an alternative settings file instead of "/.spps/settings" in the
+users home folder.
+
+```java
+import de.elomagic.spps.bc.SimpleCrypt;
+
+import java.nio.file.Paths;
+
+class Sample {
+
+    void testEncryptDecryptWithString() throws Exception {
+        
+        SimpleCrypt.setSettingsFile(Paths.get("./configuration/privateKey"));
+
+        String decrypted = SimpleCrypt.decryptToString(SimpleCrypt.encrypt("secret"));
+        System.out.println("...and my secret is " + decrypted);
+        
+    }
+
+}
 ```

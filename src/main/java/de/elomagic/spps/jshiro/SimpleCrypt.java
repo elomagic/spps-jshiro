@@ -40,6 +40,7 @@ import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.util.Arrays;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Helper class to en-/decrypt of passwords.
@@ -49,12 +50,11 @@ import java.util.Properties;
 public final class SimpleCrypt {
 
     private static final Logger LOGGER = LogManager.getLogger(SimpleCrypt.class);
-    private static final String PRIVATE_KEY_FILENAME = "settings";
     private static final String KEY_KEY = "key";
     private static final String RELOCATION_KEY = "relocation";
     private static final int PRIVATE_KEY_SIZE = 256;
-    private static final Path PRIVATE_KEY_FILE = Paths.get(System.getProperty("user.home"), ".spps", PRIVATE_KEY_FILENAME);
-
+    private static final Path DEFAULT_SETTINGS_FILE = Paths.get(System.getProperty("user.home"), ".spps", "settings");
+    private static final AtomicReference<Path> SETTINGS_FILE = new AtomicReference<>(DEFAULT_SETTINGS_FILE);
     private static final DefaultBlockCipherService CIPHER = new AesCipherService();
 
     private SimpleCrypt() {
@@ -68,7 +68,7 @@ public final class SimpleCrypt {
      */
     @NotNull
     private static byte[] readPrivateKey() throws GeneralSecurityException {
-        return readPrivateKey(PRIVATE_KEY_FILE);
+        return readPrivateKey(SETTINGS_FILE.get());
     }
 
     /**
@@ -111,7 +111,7 @@ public final class SimpleCrypt {
      * @throws GeneralSecurityException Thrown when unable to create private key
      */
     public static void createPrivateKey(boolean force) throws GeneralSecurityException {
-        createPrivateKey(PRIVATE_KEY_FILE, force);
+        createPrivateKey(SETTINGS_FILE.get(), force);
     }
 
     /**
@@ -121,10 +121,10 @@ public final class SimpleCrypt {
      * @throws GeneralSecurityException Thrown when unable to create private key
      */
     private static void createPrivateKey(@NotNull Path file, boolean force) throws GeneralSecurityException {
-        if (PRIVATE_KEY_FILE.equals(file)) {
+        if (SETTINGS_FILE.get().equals(file)) {
             createPrivateKey(file, null, force);
         } else {
-            createPrivateKey(PRIVATE_KEY_FILE, file, force);
+            createPrivateKey(SETTINGS_FILE.get(), file, force);
         }
     }
 
@@ -137,8 +137,8 @@ public final class SimpleCrypt {
      */
     private static void createPrivateKey(@NotNull Path file, @Nullable Path relocationFile, boolean force) throws GeneralSecurityException {
         try {
-            if(!PRIVATE_KEY_FILE.getParent().toFile().exists()) {
-                Files.createDirectories(PRIVATE_KEY_FILE.getParent());
+            if(!SETTINGS_FILE.get().getParent().toFile().exists()) {
+                Files.createDirectories(SETTINGS_FILE.get().getParent());
             }
 
             if (Files.exists(file) && !force) {
@@ -283,6 +283,18 @@ public final class SimpleCrypt {
      */
     public static boolean isEncryptedValue(@Nullable String value) {
         return value != null && value.startsWith("{") && value.endsWith("}");
+    }
+
+    /**
+     * Set an alternative default settings file instead of default "${user.home}/.spps/settings".
+     *
+     * An application can use this feature to prevent sharing of the private key with other applications.
+     *
+     * @param file Alternative settings file or null to use the default file.
+     */
+    public static void setSettingsFile(@Nullable Path file) {
+        LOGGER.info("Changing default settings file to {}", SETTINGS_FILE.get());
+        SETTINGS_FILE.set(file == null ? DEFAULT_SETTINGS_FILE : file);
     }
 
     private static PrintWriter out() {
