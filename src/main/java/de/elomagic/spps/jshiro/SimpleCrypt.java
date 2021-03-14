@@ -94,39 +94,16 @@ public final class SimpleCrypt {
                 if (p.getProperty(RELOCATION_KEY, "").trim().length() != 0) {
                     return readPrivateKey(Paths.get(p.getProperty(RELOCATION_KEY)));
                 } else {
-                    return Base64.decode(p.getProperty(KEY_KEY));
+                    String key = p.getProperty(KEY_KEY, "");
+                    if ("".equals(key)) {
+                        throw new GeneralSecurityException("No private key set.");
+                    }
+                    return Base64.decode(key);
                 }
             }
-        } catch (IOException ex) {
-            LOGGER.error(ex.getMessage(), ex);
-            throw new IllegalStateException("Unable to read private key", ex);
         } catch (Exception ex) {
             LOGGER.error(ex.getMessage(), ex);
-            throw new GeneralSecurityException("Unable to create or read private key.", ex);
-        }
-    }
-
-    /**
-     * Creates a new private key.
-     *
-     * @param force Must true to confirm to overwrite existing private key.
-     * @throws GeneralSecurityException Thrown when unable to create private key
-     */
-    public static void createPrivateKey(boolean force) throws GeneralSecurityException {
-        createPrivateKey(SETTINGS_FILE.get(), force);
-    }
-
-    /**
-     * Creates a new private key.
-     *
-     * @param force Must true to confirm to overwrite existing private key.
-     * @throws GeneralSecurityException Thrown when unable to create private key
-     */
-    private static void createPrivateKey(@NotNull Path file, boolean force) throws GeneralSecurityException {
-        if (SETTINGS_FILE.get().equals(file)) {
-            createPrivateKey(file, null, force);
-        } else {
-            createPrivateKey(SETTINGS_FILE.get(), file, force);
+            throw new GeneralSecurityException("Unable to read private key.", ex);
         }
     }
 
@@ -137,10 +114,12 @@ public final class SimpleCrypt {
      * @param force When true and private key file already exists then it will be overwritten otherwise an exception will be thrown
      * @throws GeneralSecurityException Thrown when unable to create private key
      */
-    private static void createPrivateKey(@NotNull Path file, @Nullable Path relocationFile, boolean force) throws GeneralSecurityException {
+    static void createPrivateKey(@Nullable Path file, @Nullable Path relocationFile, boolean force) throws GeneralSecurityException {
         try {
-            if(!SETTINGS_FILE.get().getParent().toFile().exists()) {
-                Files.createDirectories(SETTINGS_FILE.get().getParent());
+            file = file == null ? SETTINGS_FILE.get() : file;
+
+            if (Files.notExists(file.getParent())) {
+                Files.createDirectories(file.getParent());
             }
 
             if (Files.exists(file) && !force) {
@@ -323,12 +302,9 @@ public final class SimpleCrypt {
                 out().println(encrypt(secret));
             } else if (argList.contains("-CreatePrivateKey")) {
                 boolean force = argList.contains("-Force");
-                Path relocation = argList.contains("-Relocation") ? Paths.get(getArgument(argList, "-Relocation")) : null;
-                if (relocation == null) {
-                    createPrivateKey(force);
-                } else {
-                    createPrivateKey(relocation, force);
-                }
+                Path relocationFile = argList.contains("-Relocation") ? Paths.get(getArgument(argList, "-Relocation")) : null;
+                Path file = argList.contains("-File") ? Paths.get(getArgument(argList, "-File")) : null;
+                createPrivateKey(file, relocationFile, force);
             } else {
                 String resource = "/" + SimpleCrypt.class.getPackage().getName().replace(".", "/") + "/Help.txt";
                 try (InputStream in = SimpleCrypt.class.getResourceAsStream(resource); InputStreamReader reader = new InputStreamReader(in)) {

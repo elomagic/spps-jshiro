@@ -24,6 +24,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -40,6 +42,13 @@ class SimpleCryptTest {
     private static final Path PRIVATE_KEY_FILE = Paths.get(System.getProperty("user.home"), ".spps", PRIVATE_KEY_FILENAME);
 
     private static String backup;
+
+    private Path createEmptyTempFile() throws IOException {
+        Path file = File.createTempFile("SimpleCryptTest-", ".tmp").toPath();
+        file.toFile().deleteOnExit();
+
+        return file;
+    }
 
     @BeforeAll
     static void beforeAll() throws Exception {
@@ -61,13 +70,14 @@ class SimpleCryptTest {
 
     @Test
     void testCreatePrivateKey() throws Exception {
-        Files.deleteIfExists(PRIVATE_KEY_FILE);
-        Assertions.assertTrue(Files.notExists(PRIVATE_KEY_FILE));
+        Path file = createEmptyTempFile();
 
-        SimpleCrypt.createPrivateKey(true);
+        Assertions.assertEquals(1, SimpleCrypt.run(new String[]{"-CreatePrivateKey", "-File", file.toString()}));
+
+        Assertions.assertEquals(0, SimpleCrypt.run(new String[]{"-CreatePrivateKey", "-Force", "-File", file.toString()}));
 
         Properties p = new Properties();
-        try (Reader reader = Files.newBufferedReader(PRIVATE_KEY_FILE)) {
+        try (Reader reader = Files.newBufferedReader(file)) {
             p.load(reader);
         }
 
@@ -76,7 +86,9 @@ class SimpleCryptTest {
 
     @Test
     void testEncryptDecryptWithString() throws Exception {
-        SimpleCrypt.createPrivateKey(true);
+        Path file = createEmptyTempFile();
+        SimpleCrypt.createPrivateKey(file, null,true);
+        SimpleCrypt.setSettingsFile(file);
 
         String value = "secret";
 
@@ -117,9 +129,8 @@ class SimpleCryptTest {
     }
 
     @Test
-    void testRun() throws Exception {
-        SimpleCrypt.createPrivateKey(true);
-        Assertions.assertEquals(0, SimpleCrypt.run(new String[] {"-Secret", "abcde"}));
+    void testRun() {
+        Assertions.assertEquals(0, SimpleCrypt.run(new String[] {"abcde"}));
         Assertions.assertEquals(0, SimpleCrypt.run(null));
         Assertions.assertEquals(1, SimpleCrypt.run(new String[] {"-Secret"}));
     }
@@ -141,24 +152,20 @@ class SimpleCryptTest {
 
     @Test
     void testSetSettingsFile() throws Exception {
-
-        Path tempFolder = Files.createTempDirectory("tmpDirPrefix");
-        Files.createDirectories(tempFolder);
-
-        Path settingsFile =  tempFolder.resolve("alternativeSettings");
-        Assertions.assertTrue(Files.notExists(settingsFile));
-
         String value = "secretäöüß";
-        SimpleCrypt.createPrivateKey(true);
+        Path file1 = createEmptyTempFile();
+        SimpleCrypt.createPrivateKey(file1, null, true);
+        SimpleCrypt.setSettingsFile(file1);
         String encrypted1 = SimpleCrypt.encrypt(value);
         Assertions.assertTrue(SimpleCrypt.isEncryptedValue(encrypted1));
         Assertions.assertEquals(value, SimpleCrypt.decryptToString(encrypted1));
 
-        SimpleCrypt.setSettingsFile(settingsFile);
+        Path file2 = createEmptyTempFile();
+        SimpleCrypt.setSettingsFile(file2);
         Assertions.assertThrows(GeneralSecurityException.class, () -> SimpleCrypt.decrypt(encrypted1));
 
-        SimpleCrypt.createPrivateKey(true);
-        Assertions.assertTrue(Files.exists(settingsFile));
+        SimpleCrypt.createPrivateKey(file2, null,true);
+        Assertions.assertTrue(Files.exists(file2));
 
         String encrypted2 = SimpleCrypt.encrypt(value);
         SimpleCrypt.setSettingsFile(null);
