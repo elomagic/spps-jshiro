@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0] - Upcoming
+
+* FEATURE Method "init()" added to create settings file if it doesn't exist. Recommend to call during application start.
+
+### Upgrade Notes:
+* Exception class GeneralSecurityException replaced by runtime exception SimpleCryptException
+
 ## [1.1.1] - 2021-12-17
 * BUGFIX Log4shell issue fixed
 

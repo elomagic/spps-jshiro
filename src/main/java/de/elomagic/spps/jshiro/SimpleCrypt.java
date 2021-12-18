@@ -36,7 +36,6 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.util.Arrays;
 import java.util.Collections;
@@ -66,10 +65,10 @@ public final class SimpleCrypt {
      * Read private key from default location.
      *
      * @return Returns the private key as byte array.
-     * @throws GeneralSecurityException Thrown when unable to create private key
+     * @throws SimpleCryptException Thrown when unable to create private key
      */
     @NotNull
-    private static byte[] readPrivateKey() throws GeneralSecurityException {
+    private static byte[] readPrivateKey() throws SimpleCryptException {
         return readPrivateKey(SETTINGS_FILE.get());
     }
 
@@ -78,10 +77,10 @@ public final class SimpleCrypt {
      *
      * @param file File of the private key. When relocation in file is set then key will be read from there.
      * @return Returns the private key as byte array.
-     * @throws GeneralSecurityException Thrown when unable to create private key
+     * @throws SimpleCryptException Thrown when unable to create private key
      */
     @NotNull
-    private static byte[] readPrivateKey(@NotNull Path file) throws GeneralSecurityException {
+    private static byte[] readPrivateKey(@NotNull Path file) throws SimpleCryptException {
         try {
             if (Files.notExists(file)) {
                 throw new FileNotFoundException("Unable to find settings file. At first you have to create a private key.");
@@ -96,25 +95,26 @@ public final class SimpleCrypt {
                 } else {
                     String key = p.getProperty(KEY_KEY, "");
                     if ("".equals(key)) {
-                        throw new GeneralSecurityException("No private key set.");
+                        throw new SimpleCryptException("No private key set.");
                     }
                     return Base64.decode(key);
                 }
             }
         } catch (Exception ex) {
             LOGGER.error(ex.getMessage(), ex);
-            throw new GeneralSecurityException("Unable to read private key.", ex);
+            throw new SimpleCryptException("Unable to read private key.", ex);
         }
     }
 
     /**
      * Creates a private key file.
      *
-     * @param file (Alternative) file where to write file with private key
+     * @param file File where the private key will be stored. If null then default file, which be stored in the user folder, will be used.
+     * @param relocationFile Alternative file where to write file with private key
      * @param force When true and private key file already exists then it will be overwritten otherwise an exception will be thrown
-     * @throws GeneralSecurityException Thrown when unable to create private key
+     * @throws SimpleCryptException Thrown when unable to create private key
      */
-    static void createPrivateKey(@Nullable Path file, @Nullable Path relocationFile, boolean force) throws GeneralSecurityException {
+    static void createPrivateKey(@Nullable Path file, @Nullable Path relocationFile, boolean force) throws SimpleCryptException {
         try {
             file = file == null ? SETTINGS_FILE.get() : file;
 
@@ -142,6 +142,8 @@ public final class SimpleCrypt {
                 createPrivateKey(relocationFile, null, force);
             }
 
+            LOGGER.info("Creating settings file");
+
             try (Writer writer = Files.newBufferedWriter(file, StandardCharsets.UTF_8)) {
                 p.store(writer, "SPPS Settings");
             }
@@ -150,19 +152,47 @@ public final class SimpleCrypt {
             throw new IllegalStateException("Unable to create private key", ex);
         } catch (Exception ex) {
             LOGGER.error(ex.getMessage(), ex);
-            throw new GeneralSecurityException("Unable to create or read private key.", ex);
+            throw new SimpleCryptException("Unable to create or read private key.", ex);
         }
+    }
+
+    /**
+     * Checks if settings file exists.
+     *
+     * Settings file can be "${user.home}/.spps/settings" or an alternative file which set with {@link SimpleCrypt#setSettingsFile(Path)}
+     *
+     * @return Returns true if exists.
+     */
+    static boolean isInitialize() {
+        return Files.exists(SETTINGS_FILE.get());
+    }
+
+    /**
+     * Initialize SimpleCrypt by checking of setting file.
+     * <p>
+     * Settings file can be "${user.home}/.spps/settings" or an alternative file which set with {@link SimpleCrypt#setSettingsFile(Path)}
+     *
+     * @throws SimpleCryptException Thrown when unable to create private key file
+     * @return Returns true when settings file was created and false when settings file already exist.
+     */
+    public static boolean init() throws SimpleCryptException {
+        if (!isInitialize()) {
+            createPrivateKey(null, null, false);
+            return true;
+        }
+
+        return false;
     }
 
     /**
      * Encrypt, encoded as Base64 and encapsulate with curly bracket of a string.
      *
      * @param decrypted a non encrypted byte array
-     * @return Returns a encrypted, Base64 encoded string, surrounded with curly brackets.
-     * @throws GeneralSecurityException Thrown when an error occurred during encrypting.
+     * @return Returns an encrypted, Base64 encoded string, surrounded with curly brackets.
+     * @throws SimpleCryptException Thrown when an error occurred during encrypting.
      */
     @Nullable
-    public static String encrypt(@Nullable byte[] decrypted) throws GeneralSecurityException {
+    public static String encrypt(byte[] decrypted) throws SimpleCryptException {
         if (decrypted == null) {
             return null;
         }
@@ -173,7 +203,7 @@ public final class SimpleCrypt {
             return "{" + encrypted.toBase64() + "}";
         } catch(Exception ex) {
             LOGGER.error(ex.getMessage(), ex);
-            throw new GeneralSecurityException(ex.getMessage(), ex);
+            throw new SimpleCryptException(ex.getMessage(), ex);
         }
     }
 
@@ -181,11 +211,11 @@ public final class SimpleCrypt {
      * Encrypt, encoded as Base64 and encapsulate with curly bracket of a string.
      *
      * @param decrypted a non encrypted char array
-     * @return Returns a encrypted, Base64 encoded string, surrounded with curly brackets.
-     * @throws GeneralSecurityException Thrown when an error occurred during encrypting.
+     * @return Returns an encrypted, Base64 encoded string, surrounded with curly brackets.
+     * @throws SimpleCryptException Thrown when an error occurred during encrypting.
      */
     @Nullable
-    public static String encrypt(@Nullable char[] decrypted) throws GeneralSecurityException {
+    public static String encrypt(char[] decrypted) throws SimpleCryptException {
         return decrypted == null ? null : encrypt(new String(decrypted).getBytes(StandardCharsets.UTF_8));
     }
 
@@ -193,11 +223,11 @@ public final class SimpleCrypt {
      * Encrypt, encoded as Base64 and encapsulate with curly bracket of a string.
      *
      * @param decrypted a non encrypted string
-     * @return Returns a encrypted, Base64 encoded string, surrounded with curly brackets.
-     * @throws GeneralSecurityException Thrown when an error occurred during encrypting.
+     * @return Returns an encrypted, Base64 encoded string, surrounded with curly brackets.
+     * @throws SimpleCryptException Thrown when an error occurred during encrypting.
      */
     @Nullable
-    public static String encrypt(@Nullable String decrypted) throws GeneralSecurityException {
+    public static String encrypt(String decrypted) throws SimpleCryptException {
         return decrypted == null ? null : encrypt(decrypted.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -207,16 +237,16 @@ public final class SimpleCrypt {
      *
      * @param encryptedBase64 Base64 encoded data string, encapsulated with curly brackets.
      * @return The encrypted data as string.
-     * @throws GeneralSecurityException Thrown when unable to decrypt data .
+     * @throws SimpleCryptException Thrown when unable to decrypt data .
      */
     @Nullable
-    public static byte[] decrypt(@Nullable String encryptedBase64) throws GeneralSecurityException {
+    public static byte[] decrypt(@Nullable String encryptedBase64) throws SimpleCryptException {
         if (encryptedBase64 == null) {
             return null;
         }
 
         if(!isEncryptedValue(encryptedBase64)) {
-            throw new GeneralSecurityException("This value is not with curly brackets encapsulated as an encrypted value. Unable to decrypt.");
+            throw new SimpleCryptException("This value is not with curly brackets encapsulated as an encrypted value. Unable to decrypt.");
         }
 
         try {
@@ -228,7 +258,7 @@ public final class SimpleCrypt {
             return decrypted.getBytes();
         } catch(Exception ex) {
             LOGGER.error(ex.getMessage(), ex);
-            throw new GeneralSecurityException("Unable to decrypt data.", ex);
+            throw new SimpleCryptException("Unable to decrypt data.", ex);
         }
     }
 
@@ -237,10 +267,10 @@ public final class SimpleCrypt {
      *
      * @param encryptedBase64 Base64 encoded data string, encapsulated with curly brackets.
      * @return The encrypted data as char array.
-     * @throws GeneralSecurityException Thrown when unable to decrypt data .
+     * @throws SimpleCryptException Thrown when unable to decrypt data .
      */
     @Nullable
-    public static char[] decryptToChars(@Nullable String encryptedBase64) throws GeneralSecurityException {
+    public static char[] decryptToChars(@Nullable String encryptedBase64) throws SimpleCryptException {
         return encryptedBase64 == null ? null : CodecSupport.toChars(decrypt(encryptedBase64));
     }
 
@@ -249,10 +279,10 @@ public final class SimpleCrypt {
      *
      * @param encryptedBase64 Base64 encoded data string, encapsulated with curly brackets.
      * @return The encrypted data as string.
-     * @throws GeneralSecurityException Thrown when unable to decrypt data .
+     * @throws SimpleCryptException Thrown when unable to decrypt data .
      */
     @Nullable
-    public static String decryptToString(@Nullable String encryptedBase64) throws GeneralSecurityException {
+    public static String decryptToString(@Nullable String encryptedBase64) throws SimpleCryptException {
         return encryptedBase64 == null ? null : new String(decrypt(encryptedBase64), StandardCharsets.UTF_8);
     }
 
