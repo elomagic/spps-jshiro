@@ -44,9 +44,7 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Helper class to en-/decrypt of passwords.
- *
- * @author Carsten Rambow
+ * Simple crypt tool class by using Apache Shiro framework.
  */
 public final class SimpleCrypt {
 
@@ -241,12 +239,8 @@ public final class SimpleCrypt {
      */
     @Nullable
     public static byte[] decrypt(@Nullable String encryptedBase64) throws SimpleCryptException {
-        if (encryptedBase64 == null) {
-            return null;
-        }
-
         if(!isEncryptedValue(encryptedBase64)) {
-            throw new SimpleCryptException("This value is not with curly brackets encapsulated as an encrypted value. Unable to decrypt.");
+            return encryptedBase64 == null ? null : encryptedBase64.getBytes(StandardCharsets.UTF_8);
         }
 
         try {
