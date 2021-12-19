@@ -5,7 +5,7 @@
 
     <groupId>de.elomagic</groupId>
     <artifactId>spps-jshiro</artifactId>
-    <version>1.2.0-SNAPSHOT</version>
+    <version>1.2.0</version>
     <packaging>jar</packaging>
 
     <name>Simple Password Protection Solution with Apache Shiro</name>
@@ -57,7 +57,7 @@
         <url>https://github.com/elomagic/spps-jshiro</url>
         <connection>scm:git:https://github.com/elomagic/spps-jshiro.git</connection>
         <developerConnection>scm:git:https://github.com/elomagic/spps-jshiro.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>v1.2.0</tag>
     </scm>
 
     <dependencies>
